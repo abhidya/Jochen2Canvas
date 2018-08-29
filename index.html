@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+
+<html>
+ <head>
+  <title>Jochen 2 Canvas</title> 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="a    nonymous">
+     
+     <style>
+         .center {
+     margin: auto;
+      width: 50%;
+      padding: 10px;
+  }
+.container {
+  display: flex;
+}
+.container > div {
+  flex: 1; /*grow*/
+}
+	 .wrapper{position:relative;}
+    .right,.left{width:50%; position:absolute;}
+    .right{right:0;}
+    .left{left:0;}
+
+/*Input field size shrinker, from bootstrap size */
+input[type=text], select {
+    width: 50%;
+}
+.content {
+    max-width: 99%;
+    margin: auto;
+    background: white;
+    padding: 10px;
+}
+
+      </style> 
+ </head>
+ <body>
+ <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+   <a class="navbar-brand" href="index.html">Jochen-2-Canvas</a>
+ </nav>
+
+<div class="content">
+<br>
+
+
+     <div id=bins">
+	<form id="binsform" action="process.php" method="get">
+
+<center>
+<div class="row">
+  <div class="col-sm-6">
+    <div class="card">
+      <div class="card-body">
+	    <p>Canvas Username: <input type="text" name='binsStart[]' value="abhidya"/> </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6">
+    <div class="card">
+      <div class="card-body">
+	    <p>Canvas Password: <input type="password" name='binsStart[]' value="Yang123"/> </p>
+      </div>
+    </div>
+  </div>
+</div> 
+
+<div class="row">
+  <div class="col-sm-6">
+    <div class="card">
+      <div class="card-body">
+      <p>Link-to-Personal-Site: <input type="text" name='binsStart[]' value="http://www.math.utk.edu/~denzler/M241-Fa2018/ClassDiary.html"/></p>
+    </div>
+    </div>
+  </div>
+  <div class="col-sm-6">
+    <div class="card">
+      <div class="card-body">
+      <p>Canvas-Auth: <input type="password" name='binsStart[]' value="7641~TxtMp7ZcjLOg2U023nqA7OSHtFVCuzkA0JiA3Vx2YiEOWvyhR97kEgu2iyT8Qrop"/> </p>
+    </div>
+    </div>
+  </div>
+</div>
+
+
+<input type="submit" value="Submit"> 
+
+</center>
+
+	</form>
+</div>
+</body>
+</html>
+
+
