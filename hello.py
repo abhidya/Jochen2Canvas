@@ -47,7 +47,7 @@ c.verify = False
 
 browser = RoboBrowser(session=c, parser='html.parser')
 
-browser.open('https://utk.instructure.com/')
+browser.open('https://cas.tennessee.edu/cas/login?service=https%3A%2F%2Futk.instructure.com%2Flogin%2Fcas')
 form = browser.get_form()
 form['username'] = username
 form['password'] = password
