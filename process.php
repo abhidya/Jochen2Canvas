@@ -13,7 +13,7 @@ for($i = 0; $i < $numbins; $i++){
 }
 
 
-$handle = popen("/home/manny/anaconda3/bin/python3 /var/www/html/math/hello.py 2>&1 '" .$args."'" , 'r');
+$handle = popen("/usr/bin/python3 hello.py 2>&1 '" .$args."'" , 'r');
 $output = fread($handle, 1024);
 var_dump($output);
 pclose($handle);
