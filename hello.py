@@ -1,112 +1,66 @@
-import sys
+"""Offline Jochen class-diary parser for the archived Canvas sync project."""
 
-sys.setrecursionlimit(5000)
-import datetime
-import requests
-from requests import Session
-from robobrowser import RoboBrowser
-import configparser
+from __future__ import annotations
 
-
-
-
-#Constructing data on infectivity from website
-args = sys.argv[1]
-arglist = args.split()        #turn the args string into list items
-username = str(arglist[0])        #number of bins
-password = str(arglist[1])   #number of functions
-val2 = str(arglist[2])     #numver of samples
-val1 = str(arglist[3])     #numver of samples
+import argparse
+import datetime as dt
+import re
+from dataclasses import dataclass
+from html.parser import HTMLParser
+from pathlib import Path
 
 
-
-#config = configparser.ConfigParser()
-#config.read("config.ini")
-#username = config.get("information", "Username")
-#password = config.get("information", "Password")
-#val2 = config.get("information", "Link-to-Personal-Site")
-#val1 = config.get("information", "Canvas-Auth")
-
-print('\n' + val1 + " " + val2)
-
-calendar_link = "https://utk.instructure.com/api/v1/calendar_events?start_date=2018-05-02T04:00:00.000Z&end_date=2019-10-07T04:00:00.000Z&per_page=100&access_token="
+@dataclass(frozen=True)
+class DiaryItem:
+    due_date: str
+    title: str
 
 
-def find_between(s, first, last):
-    try:
-        start = s.index(first) + len(first)
-        end = s.index(last, start)
-        return s[start:end]
-    except ValueError:
-        return ""
+class BodyTextParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.items: list[str] = []
+
+    def handle_data(self, data: str) -> None:
+        text = " ".join(data.split())
+        if text:
+            self.items.append(text)
 
 
-requests.packages.urllib3.disable_warnings()
-c = Session()
-c.verify = False
+def parse_diary(html: str, year: int = 2018) -> list[DiaryItem]:
+    parser = BodyTextParser()
+    parser.feed(html)
+    results: list[DiaryItem] = []
+    current_day = ""
 
-browser = RoboBrowser(session=c, parser='html.parser')
+    for text in parser.items:
+        if re.match(r"^[A-Z][a-z]{2} [A-Z][a-z]{2} \d{1,2}:?$", text):
+            current_day = text.rstrip(":")
+            continue
+        if current_day:
+            due_date = dt.datetime.strptime(f"{current_day} {year}", "%a %b %d %Y").strftime("%Y-%m-%d")
+            results.append(DiaryItem(due_date=due_date, title=text))
+            current_day = ""
 
-browser.open('https://cas.tennessee.edu/cas/login?service=https%3A%2F%2Futk.instructure.com%2Flogin%2Fcas')
-form = browser.get_form()
-form['username'] = username
-form['password'] = password
-browser.submit_form(form)
-poop = browser.find('body')
-poop = str(poop['class'])
-poop = find_between(poop, "'context-", "', 'lato-font-not-loaded-yet']")
-print(poop)
-user = poop
+    return results
 
-personal_site = val2
-Canvas_authcode = val1
-headers = {
-    'Authorization': 'Bearer ' + Canvas_authcode}
 
-browser.open(personal_site)
-hrs = browser.find("body")
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Parse Jochen class diary HTML without Canvas credentials.")
+    parser.add_argument("--fixture", type=Path, default=Path("fixtures/jochen_diary.html"))
+    parser.add_argument("--year", type=int, default=2018)
+    parser.add_argument("--live", action="store_true", help="Always refused in this archive.")
+    args = parser.parse_args()
 
-#
-flag = False
-day = ""
-for list in hrs:
-    list = str(list.encode('utf-8'))
+    if args.live:
+        raise SystemExit("Live Canvas sync is disabled in this archive. Use the offline parser fixture.")
 
-    if (flag):
-        if (r"b'\n'" != list):
-            day = day.replace(r"""b'<b>\n""", "")
-            day = day.replace(r": </b>'", "")
-            day = day + str(" 2018")
-            list = list.replace(r"b' \n", "")
-            list = list.replace(r"\n'", "")
-            list = list.replace(r"b'", '')
-            list = list.replace(r'b"', '')
-            list = list.replace(r"\n", ' ')
-            list = list.lstrip()
-            list = list.rstrip()
-            manny_date = datetime.datetime.strptime(day, "%a %b %d %Y").strftime("%Y-%m-%d")
-            print(manny_date + '\n' + list + '\n')
-            check = c.get(calendar_link + val1, headers=headers)
+    items = parse_diary(args.fixture.read_text(encoding="utf-8"), year=args.year)
+    for item in items:
+        print(f"{item.due_date}: {item.title}")
+    print(f"parsed_items={len(items)} network_calls=0")
+    return 0
 
-            check = str(check.json())
-            # print(list)
-            if list not in check:
-                # print(manny_date)
-                fun = manny_date + 'T21:00:00Z'
-                files = {
-                    'calendar_event[context_code]': (None, user),
-                    'calendar_event[title]': (None, list),
-                    'calendar_event[start_at]': (None, fun),
-                    'calendar_event[end_at]': (None, fun),
-                    'calendar_event[description]': (None, '''<a href="''' + val2 + '''">Jochen's Hell Hole</a>''')
-                }
-                response = c.post('https://utk.instructure.com/api/v1/calendar_events.json', headers=headers, files=files)
-                response = response.json()
-                if "errors" in response:
-                    print(response)
-            else:
-                print('\n' + "Assignment ALREADY ADDED, SKIPPING" + '\n')
-        flag = False
-    if ("<b>" in list):
-        day = list
-        flag = True
+
+if __name__ == "__main__":
+    raise SystemExit(main())
